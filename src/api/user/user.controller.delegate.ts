@@ -16,6 +16,7 @@ import { uuid } from '../../domain.types/miscellaneous/system.types';
 import { Loader } from '../../startup/loader';
 import { UserHelper } from '../user.helper';
 import { CurrentUser } from '../../domain.types/miscellaneous/current.user';
+import { ConfigurationManager } from '../../config/configuration.manager';
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -44,6 +45,7 @@ export class UserControllerDelegate {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { userCreateModel, password } =
             await UserHelper.getValidUserCreateModel(requestBody);
+
         const record: UserDto = await this._service.create(userCreateModel);
         if (record === null) {
             throw new ApiError('Unable to create user!', 400);
@@ -111,10 +113,22 @@ export class UserControllerDelegate {
         const loginSession = await this._service.createUserLoginSession(user.id);
         const currentUser: CurrentUser = this.constructCurrentUser(user, loginSession.id);
         const accessToken = await Loader.Authorizer.generateUserSessionToken(currentUser);
+        const expiresIn: number = ConfigurationManager.JwtExpiresIn();
+        const validTill = new Date(Date.now() + expiresIn * 1000);
         return {
-            User        : currentUser,
-            AccessToken : accessToken
+            User             : currentUser,
+            AccessToken      : accessToken,
+            SessionValidTill : validTill
         };
+    }
+
+    getBySessionId = async (sessionId: uuid) => {
+        const { user, session } = await this._service.getBySessionId(sessionId);
+        if (user === null || session === null) {
+            ErrorHandler.throwNotFoundError('User associated with session ' + sessionId.toString() + ' cannot be found! Session may have expired!');
+        }
+        const currentUser: CurrentUser = this.constructCurrentUser(user, session.id);
+        return currentUser;
     }
 
     loginWithOtp = async (requestBody) => {
@@ -139,9 +153,12 @@ export class UserControllerDelegate {
         const currentUser: CurrentUser = this.constructCurrentUser(user, loginSession.id);
         const accessToken = await Loader.Authorizer.generateUserSessionToken(currentUser);
         currentUser['ImageUrl'] = user.ImageUrl ?? '';
+        const expiresIn: number = ConfigurationManager.JwtExpiresIn();
+        const validTill = new Date(Date.now() + expiresIn * 1000);
         return {
-            User        : currentUser,
-            AccessToken : accessToken
+            User             : currentUser,
+            AccessToken      : accessToken,
+            SessionValidTill : validTill
         };
     }
 
@@ -322,14 +339,13 @@ export class UserControllerDelegate {
 
     constructCurrentUser = (user, sessionId): CurrentUser => {
         return {
-            UserId          : user.id,
-            UserName        : user.UserName,
-            CurrentRoleId   : user.RoleId,
-            CurrentRoleName : user.Role.RoleName,
-            DisplayName     : Helper.constructPersonDisplayName(user.Prefix, user.FirstName, user.LastName),
-            SessionId       : sessionId,
-            Phone           : user.CountryCode + '-' + user.Phone,
-            Email           : user.Email
+            UserId        : user.id,
+            UserName      : user.UserName,
+            CurrentRoleId : user.RoleId,
+            DisplayName   : Helper.constructPersonDisplayName(user.Prefix, user.FirstName, user.LastName),
+            SessionId     : sessionId,
+            Phone         : user.CountryCode + '-' + user.Phone,
+            Email         : user.Email
         };
     }
 

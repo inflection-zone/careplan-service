@@ -132,7 +132,7 @@ export class CareplanControllerDelegate {
             updateModel.OwnerUserId = requestBody.OwnerUserId;
         }
         if (Helper.hasProperty(requestBody, 'Tags')) {
-            updateModel.Tags = requestBody.Tags;
+            updateModel.Tags = JSON.stringify(requestBody.Tags);
         }
         return updateModel;
     }
@@ -143,9 +143,9 @@ export class CareplanControllerDelegate {
             CategoryId  : requestBody.CategoryId ? requestBody.CategoryId : null,
             Name        : requestBody.Name ? requestBody.Name : null,
             Description : requestBody.Description ? requestBody.Description : null,
-            Version     : requestBody.Version ? requestBody.Version : '1.0.0',
+            Version     : requestBody.Version ? requestBody.Version : 'V1',
             OwnerUserId : requestBody.OwnerUserId ? requestBody.OwnerUserId : null,
-            Tags        : requestBody.Tags ? requestBody.Tags : '[]'
+            Tags        : requestBody.Tags ? JSON.stringify(requestBody.Tags) as string : JSON.stringify([]),
         };
     }
 
@@ -163,8 +163,11 @@ export class CareplanControllerDelegate {
             Description : record.Description,
             Version     : record.Version,
             OwnerUserId : record.OwnerUserId,
-            Tags        : record.Tags,
-            IsActive    : record.IsActive
+            Tags        : JSON.parse(record.Tags),
+            IsActive    : record.IsActive,
+            CreatedAt   : record.CreatedAt,
+            UpdatedAt   : record.UpdatedAt,
+            Type        : record.Category.Type
         };
     }
 
@@ -182,8 +185,12 @@ export class CareplanControllerDelegate {
             Description : record.Description,
             Version     : record.Version,
             OwnerUserId : record.OwnerUserId,
-            Tags        : record.Tags,
-            IsActive    : record.IsActive
+            Tags        : JSON.parse(record.Tags),
+            IsActive    : record.IsActive,
+            CreatedAt   : record.CreatedAt,
+            UpdatedAt   : record.UpdatedAt,
+            Type        : record.Category.Type
+        
         };
     }
 

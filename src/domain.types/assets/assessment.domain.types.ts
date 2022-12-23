@@ -27,7 +27,7 @@ export interface AssessmentUpdateModel {
 }
 
 export interface AssessmentDto {
-    id: number;
+    id: uuid;
     AssetCode: string;
     Name: string;
     Description: string;
@@ -47,6 +47,7 @@ export interface AssessmentSearchFilters extends BaseSearchFilters {
     Template ? : string;
     Tags ? : string;
     Version ? : string;
+    CreatedAt ? : Date;
 }
 
 export interface AssessmentSearchResults extends BaseSearchResults {

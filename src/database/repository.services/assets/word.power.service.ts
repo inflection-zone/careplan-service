@@ -23,9 +23,9 @@ export class WordPowerService {
 
     //#region Models
 
-    WordPower = WordPowerModel.Model();
+    WordPower = WordPowerModel.Model;
 
-    User = UserModel.Model();
+    User = UserModel.Model;
 
     //#endregion
 
@@ -140,9 +140,9 @@ export class WordPowerService {
                 [Op.like] : '%' + filters.AssetCode + '%'
             };
         }
-        if (filters.Word) {
-            search.where['Word'] = {
-                [Op.like] : '%' + filters.Word + '%'
+        if (filters.Name) {
+            search.where['Name'] = {
+                [Op.like] : '%' + filters.Name + '%'
             };
         }
         if (filters.Description) {

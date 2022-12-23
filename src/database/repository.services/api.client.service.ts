@@ -12,19 +12,22 @@ import * as apikeyGenerator from 'uuid-apikey';
 
 export class ApiClientService {
 
-    ApiClient = ApiClientModel.Model();
+    ApiClient = ApiClientModel.Model;
 
     create = async (clientDomainModel: ApiClientCreateModel): Promise<ApiClientDto> => {
         try {
             const entity = {
-                ClientName : clientDomainModel.ClientName,
-                ClientCode : clientDomainModel.ClientCode,
-                Phone      : clientDomainModel.Phone,
-                Email      : clientDomainModel.Email,
-                Password   : clientDomainModel.Password ?? null,
-                ApiKey     : clientDomainModel.ApiKey ?? apikeyGenerator.default.create().apiKey,
-                ValidFrom  : clientDomainModel.ValidFrom ?? null,
-                ValidTill  : clientDomainModel.ValidTill ?? null,
+                ClientName   : clientDomainModel.ClientName,
+                FirstName    : clientDomainModel.FirstName,
+                LastName     : clientDomainModel.LastName,
+                ClientCode   : clientDomainModel.ClientCode,
+                IsPrivileged : clientDomainModel.IsPrivileged,
+                Phone        : clientDomainModel.Phone,
+                Email        : clientDomainModel.Email,
+                Password     : clientDomainModel.Password ?? null,
+                ApiKey       : clientDomainModel.ApiKey ?? apikeyGenerator.default.create().apiKey,
+                ValidFrom    : clientDomainModel.ValidFrom ?? null,
+                ValidTill    : clientDomainModel.ValidTill ?? null,
             };
             entity.Password = Helper.hash(clientDomainModel.Password);
             const client = await this.ApiClient.create(entity);
@@ -213,14 +216,26 @@ export class ApiClientService {
             if (clientDomainModel.ClientName != null) {
                 client.ClientName = clientDomainModel.ClientName;
             }
+            if (clientDomainModel.FirstName != null) {
+                client.FirstName = clientDomainModel.FirstName;
+            }
+            if (clientDomainModel.LastName != null) {
+                client.LastName = clientDomainModel.LastName;
+            }
             if (clientDomainModel.Password != null) {
                 client.Password = Helper.hash(clientDomainModel.Password);
             }
             if (clientDomainModel.Phone != null) {
                 client.Phone = clientDomainModel.Phone;
             }
+            if (clientDomainModel.IsPrivileged != null) {
+                client.IsPrivileged = clientDomainModel.IsPrivileged;
+            }
             if (clientDomainModel.Email != null) {
                 client.Email = clientDomainModel.Email;
+            }
+            if (clientDomainModel.ValidFrom != null) {
+                client.ValidFrom = clientDomainModel.ValidFrom;
             }
             if (clientDomainModel.ValidTill != null) {
                 client.ValidTill = clientDomainModel.ValidTill;
@@ -256,12 +271,15 @@ export class ApiClientService {
         const dto: ApiClientDto = {
             id           : client.id,
             ClientName   : client.ClientName,
+            FirstName    : client.FirstName,
+            LastName     : client.LastName,
             ClientCode   : client.ClientCode,
             Phone        : client.Phone,
             Email        : client.Email,
+            ApiKey       : client.ApiKey,
             IsActive     : active,
             CountryCode  : client.CountryCode,
-            IsPrivileged : false
+            IsPrivileged : client.IsPrivileged,
         };
         return dto;
     }

@@ -22,6 +22,7 @@ import {
     NutritionSearchFilters,
     NutritionSearchResults
 } from '../../../domain.types/assets/nutrition.domain.types';
+import { AssetHelper } from '../../../database/repository.services/assets/asset.helper';
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -40,10 +41,11 @@ export class NutritionControllerDelegate {
     create = async (requestBody: any) => {
         await validator.validateCreateRequest(requestBody);
         var createModel: NutritionCreateModel = this.getCreateModel(requestBody);
-        const record = await this._service.create(createModel);
+        var record = await this._service.create(createModel);
         if (record === null) {
             throw new ApiError('Unable to create nutrition!', 400);
         }
+        record = await AssetHelper.updateAssetCode(record, this._service);
         return this.getEnrichedDto(record);
     }
 
@@ -95,7 +97,7 @@ export class NutritionControllerDelegate {
 
     getSearchFilters = (query) => {
 
-        var filters = {};
+        var filters = Helper.getDefaultSearchFilters(query);
 
         var assetCode = query.assetCode ? query.assetCode : null;
         if (assetCode != null) {
@@ -187,7 +189,8 @@ export class NutritionControllerDelegate {
             AssetCategory : record.AssetCategory,
             OwnerUserId   : record.OwnerUserId,
             Tags          : JSON.parse(record.Tags),
-            Version       : record.Version
+            Version       : record.Version,
+            CreatedAt     : record.CreatedAt,
         };
     }
 

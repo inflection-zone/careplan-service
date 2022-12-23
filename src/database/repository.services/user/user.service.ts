@@ -13,17 +13,16 @@ import { DurationType } from '../../../domain.types/miscellaneous/time.types';
 
 export class UserService {
 
-    User = UserModel.Model();
+    User = UserModel.Model;
 
-    Role = RoleModel.Model();
+    Role = RoleModel.Model;
 
-    UserRole = UserRoleModel.Model();
+    UserRole = UserRoleModel.Model;
 
-    UserLoginSession = UserLoginSessionModel.Model();
+    UserLoginSession = UserLoginSessionModel.Model;
 
     create = async (createModel) => {
         try {
-            createModel.Password = Helper.hash(createModel.Password);
             var record = await this.User.create(createModel);
             return await this.getById(record.id);
         } catch (error) {
@@ -355,6 +354,43 @@ export class UserService {
             return true;
         } catch (error) {
             ErrorHandler.throwDbAccessError('Unable to determine validity of user login session!', error);
+        }
+    }
+
+    getBySessionId = async (sessionId) => {
+        try {
+            var session = await this.UserLoginSession.findByPk(sessionId);
+            if (session == null) {
+                return null;
+            }
+            if (session.ValidTill < new Date()) {
+                return null;
+            }
+            if (session.IsActive === false) {
+                return null;
+            }
+
+            var user = await this.User.findOne({
+                where : {
+                    id : session.UserId
+                }
+            });
+
+            if (user) {
+                const userRole = await this.UserRole.findOne({
+                    where : {
+                        UserId : session.id
+                    }
+                });
+                if (userRole) {
+                    const role = await this.Role.findByPk(userRole.RoleId);
+                    user['Role'] = role;
+                }
+            }
+            return user;
+
+        } catch (error) {
+            ErrorHandler.throwDbAccessError('DB Error: Unable to retrieve user for the session!', error);
         }
     }
 

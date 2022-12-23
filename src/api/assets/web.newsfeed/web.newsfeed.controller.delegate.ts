@@ -22,6 +22,7 @@ import {
     WebNewsfeedSearchFilters,
     WebNewsfeedSearchResults
 } from '../../../domain.types/assets/web.newsfeed.domain.types';
+import { AssetHelper } from '../../../database/repository.services/assets/asset.helper';
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -40,10 +41,11 @@ export class WebNewsfeedControllerDelegate {
     create = async (requestBody: any) => {
         await validator.validateCreateRequest(requestBody);
         var createModel: WebNewsfeedCreateModel = this.getCreateModel(requestBody);
-        const record = await this._service.create(createModel);
+        var record = await this._service.create(createModel);
         if (record === null) {
             throw new ApiError('Unable to create web newsfeed!', 400);
         }
+        record = await AssetHelper.updateAssetCode(record, this._service);
         return this.getEnrichedDto(record);
     }
 
@@ -95,7 +97,7 @@ export class WebNewsfeedControllerDelegate {
 
     getSearchFilters = (query) => {
 
-        var filters = {};
+        var filters = Helper.getDefaultSearchFilters(query);
 
         var assetCode = query.assetCode ? query.assetCode : null;
         if (assetCode != null) {
@@ -197,7 +199,8 @@ export class WebNewsfeedControllerDelegate {
             AssetCategory : record.AssetCategory,
             OwnerUserId   : record.OwnerUserId,
             Tags          : JSON.parse(record.Tags),
-            Version       : record.Version
+            Version       : record.Version,
+            CreatedAt     : record.CreatedAt,
         };
     }
 
